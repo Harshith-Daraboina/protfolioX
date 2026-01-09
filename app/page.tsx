@@ -4,6 +4,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Home, User, Briefcase, Code, Mail, Github, Linkedin, Phone, MapPin, ExternalLink, Menu, X, FileText, Send } from 'lucide-react';
 import * as THREE from 'three';
 import emailjs from 'emailjs-com';
+import SpotlightCard from './SpotlightCard';
+import Link from 'next/link';
+import dynamic from 'next/dynamic';
+// Removed unused LogoLoop import
+import { SiReact, SiNextdotjs, SiTypescript, SiTailwindcss, SiPython, SiFastapi, SiPostgresql, SiDocker, SiAmazon } from 'react-icons/si';
+
+const GitHubCalendar = dynamic(
+  async () => {
+    const mod = await import('react-github-calendar') as any;
+    return (mod.default || mod) as React.ComponentType<any>;
+  },
+  {
+    ssr: false,
+    loading: () => <div className="w-full h-32 animate-pulse bg-gray-800/50 rounded-lg"></div>
+  }
+);
 
 const ProfessionalPortfolio = () => {
   const [mounted, setMounted] = useState(false);
@@ -16,7 +32,7 @@ const ProfessionalPortfolio = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState({ type: '', text: '' });
-  
+
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -24,7 +40,7 @@ const ProfessionalPortfolio = () => {
   const earthGroupRef = useRef<THREE.Group | null>(null);
   const scrollY = useRef(0);
   const animationFrameRef = useRef<number | null>(null);
-  
+
   const roles = ["DEVELOPER", "DESIGNER", "PROBLEM SOLVER"];
 
   useEffect(() => {
@@ -56,7 +72,7 @@ const ProfessionalPortfolio = () => {
           setDisplayedText(displayedText.slice(0, -1));
         }, 50);
       } else {
-        setCurrentRoleIndex((prev) => (prev + 1) % roles.length);
+        setCurrentRoleIndex((prev: number) => (prev + 1) % roles.length);
         setIsTyping(true);
       }
     }
@@ -74,21 +90,21 @@ const ProfessionalPortfolio = () => {
       scrollY.current = window.scrollY;
       const documentHeight = document.body.scrollHeight - window.innerHeight;
       setScrollProgress(documentHeight > 0 ? Math.min(scrollY.current / documentHeight, 1) : 0);
-      
+
       // Section activation logic
       const sections = ['home', 'about', 'experience', 'projects', 'contact'];
       const scrollPosition = window.scrollY + 100;
-      
+
       for (const section of sections) {
         const element = document.getElementById(section);
-        if (element && scrollPosition >= element.offsetTop && 
-            scrollPosition < element.offsetTop + element.offsetHeight) {
+        if (element && scrollPosition >= element.offsetTop &&
+          scrollPosition < element.offsetTop + element.offsetHeight) {
           setActiveSection(section);
           break;
         }
       }
     };
-    
+
     if (typeof window !== 'undefined') {
       window.addEventListener('scroll', handleScroll);
       handleScroll(); // Initial call
@@ -106,30 +122,30 @@ const ProfessionalPortfolio = () => {
     cameraRef.current = camera;
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     rendererRef.current = renderer;
-    
+
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(isDarkMode ? 0x000000 : 0xffffff, 0.7);
     containerRef.current.appendChild(renderer.domElement);
-    
+
     // Create minimalist stars background
     const starGeometry = new THREE.BufferGeometry();
     const starCount = 2000;
     const starPositions = new Float32Array(starCount * 3);
-    
+
     for (let i = 0; i < starCount; i++) {
       const i3 = i * 3;
       const radius = 100 + Math.random() * 900;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos((Math.random() * 2) - 1);
-      
+
       starPositions[i3] = radius * Math.sin(phi) * Math.cos(theta);
       starPositions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
       starPositions[i3 + 2] = radius * Math.cos(phi);
     }
-    
+
     starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    
+
     const starMaterial = new THREE.PointsMaterial({
       color: isDarkMode ? 0xffffff : 0x000000,
       size: 0.8,
@@ -137,10 +153,10 @@ const ProfessionalPortfolio = () => {
       transparent: true,
       opacity: 0.6
     });
-    
+
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
-    
+
     // Create geometric sun
     const sunGeometry = new THREE.SphereGeometry(6, 32, 32);
     const sunMaterial = new THREE.MeshBasicMaterial({
@@ -151,12 +167,12 @@ const ProfessionalPortfolio = () => {
     const sun = new THREE.Mesh(sunGeometry, sunMaterial);
     sun.position.set(60, 15, 60);
     scene.add(sun);
-    
+
     // Create earth group
     const earthGroup = new THREE.Group();
     earthGroupRef.current = earthGroup;
     scene.add(earthGroup);
-    
+
     // Create minimalist earth with geometric design
     const earthGeometry = new THREE.SphereGeometry(2.5, 32, 32);
     const earthMaterial = new THREE.MeshLambertMaterial({
@@ -164,10 +180,10 @@ const ProfessionalPortfolio = () => {
       transparent: true,
       opacity: 0.9
     });
-    
+
     const earth = new THREE.Mesh(earthGeometry, earthMaterial);
     earthGroup.add(earth);
-    
+
     // Add geometric wireframe overlay
     const earthWireframe = new THREE.Mesh(
       earthGeometry,
@@ -179,7 +195,7 @@ const ProfessionalPortfolio = () => {
       })
     );
     earthGroup.add(earthWireframe);
-    
+
     // Create geometric moon
     const moonGeometry = new THREE.SphereGeometry(0.4, 16, 16);
     const moonMaterial = new THREE.MeshLambertMaterial({
@@ -190,7 +206,7 @@ const ProfessionalPortfolio = () => {
     const moon = new THREE.Mesh(moonGeometry, moonMaterial);
     moon.position.set(6, 0, 0);
     earthGroup.add(moon);
-    
+
     // Create elegant moon orbit ring
     const moonOrbitGeometry = new THREE.RingGeometry(5.8, 6.2, 64);
     const moonOrbitMaterial = new THREE.MeshBasicMaterial({
@@ -202,19 +218,19 @@ const ProfessionalPortfolio = () => {
     const moonOrbit = new THREE.Mesh(moonOrbitGeometry, moonOrbitMaterial);
     moonOrbit.rotation.x = Math.PI / 2;
     earthGroup.add(moonOrbit);
-    
+
     // Add sophisticated lighting
     const ambientLight = new THREE.AmbientLight(isDarkMode ? 0x404040 : 0x808080, 0.6);
     scene.add(ambientLight);
-    
+
     const directionalLight = new THREE.DirectionalLight(isDarkMode ? 0xffffff : 0x222222, 0.8);
     directionalLight.position.set(50, 50, 50);
     scene.add(directionalLight);
-    
+
     // Initial camera position
     camera.position.set(0, 2, 12);
     camera.lookAt(0, 0, 0);
-    
+
     // Handle mouse movement
     const handleMouseMove = (event: MouseEvent) => {
       if (earthGroup) {
@@ -222,41 +238,41 @@ const ProfessionalPortfolio = () => {
         earthGroup.rotation.x = (event.clientY / window.innerHeight - 0.5) * 0.1;
       }
     };
-    
+
     window.addEventListener('mousemove', handleMouseMove);
-    
+
     // Animation loop
     const clock = new THREE.Clock();
-    
+
     const animate = () => {
       animationFrameRef.current = requestAnimationFrame(animate);
-      
+
       const elapsedTime = clock.getElapsedTime();
-      
+
       // Rotate earth elegantly
       if (earthGroup) {
         earth.rotation.y += 0.003;
         earthWireframe.rotation.y += 0.0025;
-        
+
         // Moon orbit
         moon.position.x = Math.cos(elapsedTime * 0.4) * 6;
         moon.position.z = Math.sin(elapsedTime * 0.4) * 6;
         moon.rotation.y += 0.002;
       }
-      
+
       // Smooth camera movement based on scroll
       const scrollFactor = Math.min(scrollY.current * 0.0008, 1);
       camera.position.z = 12 - scrollFactor * 18;
       camera.position.y = 2 + scrollFactor * 8;
       camera.position.x = scrollFactor * 5;
-      
+
       camera.lookAt(0, scrollFactor * 3, 0);
-      
+
       renderer.render(scene, camera);
     };
-    
+
     animate();
-    
+
     // Handle resize
     const handleResize = () => {
       if (camera && renderer) {
@@ -265,33 +281,33 @@ const ProfessionalPortfolio = () => {
         renderer.setSize(window.innerWidth, window.innerHeight);
       }
     };
-    
+
     window.addEventListener('resize', handleResize);
-    
+
     // Cleanup
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
-      
+
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      
+
       if (containerRef.current && renderer && containerRef.current.contains(renderer.domElement)) {
         containerRef.current.removeChild(renderer.domElement);
       }
-      
+
       if (renderer) {
         renderer.dispose();
       }
-      
+
       // Dispose geometries and materials
       if (scene) {
-        scene.traverse((object) => {
+        scene.traverse((object: THREE.Object3D) => {
           if (object instanceof THREE.Mesh) {
             object.geometry?.dispose();
             if (Array.isArray(object.material)) {
-              object.material.forEach(material => material.dispose());
+              object.material.forEach((material: THREE.Material) => material.dispose());
             } else {
               object.material?.dispose();
             }
@@ -312,69 +328,76 @@ const ProfessionalPortfolio = () => {
   const projects = [
     {
       id: 1,
-      title: 'Geolocation Attendance System',
-      description: 'React Native app with real-time chat for location-based attendance tracking with 95% accuracy in location verification.',
-      technologies: ['React Native', 'Supabase', 'Firebase', 'Expo'],
-      category: 'Mobile App',
-      year: '2024',
-      achievement: '95% location accuracy',
+      title: 'Hey Attrangi Meet',
+      description: 'A sophisticated AI-Powered Video Conferencing Platform designed effectively for huddle rooms. Features include intelligent host controls, real-time smart noise suppression, and seamless screen sharing capabilities, ensuring a crystal-clear communication experience for all participants.',
+      technologies: ['React', 'WebRTC', 'AI', 'Mobile', 'Docker', 'AWS'],
+      category: 'Video Conferencing',
+      year: '2025',
+      achievement: 'Low-latency',
       link: '#'
     },
     {
       id: 2,
-      title: 'Enterprise E-Commerce Platform',
-      description: 'Full-stack platform with SSR, analytics dashboard, and inventory management system.',
-      technologies: ['Next.js', 'Prisma', 'NextAuth', 'Vercel'],
-      category: 'Full Stack',
-      year: '2024',
-      achievement: '99.9% uptime',
+      title: 'Pragya',
+      description: 'An advanced Emotionally Intelligent Mental Health Chatbot capable of detecting nuanced signs of stress, anxiety, and fatigue. Powered by a custom NeuroEngine, it provides empathetic conversations and actionable wellness insights to support user mental health journeys.',
+      technologies: ['FastAPI', 'LangChain', 'Next.js', 'PostgreSQL'],
+      category: 'AI/Health',
+      year: '2025',
+      achievement: 'Context Aware',
       link: '#'
     },
     {
       id: 3,
-      title: 'Solar Power Prediction Model',
-      description: 'ML model predicting solar output with weather integration and interactive visualizations.',
-      technologies: ['Python', 'scikit-learn', 'Plotly'],
-      category: 'AI/ML',
-      year: '2024',
-      achievement: '92% accuracy',
+      title: 'Solar Power Prediction',
+      description: 'Engineered a high-precision ML-based Solar Power Prediction System achieving 92% accuracy. Integrated real-time weather APIs to forecast energy output, enabling efficient grid management and renewable energy optimization for sustainable power usage.',
+      technologies: ['Python', 'scikit-learn', 'Plotly', 'Streamlit'],
+      category: 'ML/Data Science',
+      year: '2025',
+      achievement: '92% Accuracy',
       link: '#'
     },
     {
       id: 4,
-      title: 'Social Media Platform',
-      description: 'Scalable platform with microservices architecture and real-time messaging.',
-      technologies: ['Turbo Repo', 'TypeScript', 'WebSocket'],
-      category: 'Full Stack',
+      title: 'Geolocation-Based Attendance System',
+      description: 'Developed a React Native mobile application with real-time chat functionality for location-based attendance tracking. Integrated Supabase for backend services, Firebase for real-time messaging, and Expo Location API for precise geolocation. Implemented secure authentication and role-based access control for students and faculty. Achieved 95% accuracy in location verification within a 50-meter radius using GPS coordinates.',
+      technologies: ['React Native', 'Supabase', 'Firebase', 'Expo'],
+      category: 'Mobile App',
       year: '2024',
-      achievement: 'Microservices',
+      achievement: '95% Accuracy',
       link: '#'
     }
   ];
 
   const skills = [
-    { name: 'Frontend Development', level: 95, category: 'React, Next.js, Vue' },
-    { name: 'Backend Development', level: 90, category: 'Node.js, Python, Django' },
-    { name: 'Mobile Development', level: 88, category: 'React Native, Expo' },
-    { name: 'Machine Learning', level: 85, category: 'TensorFlow, scikit-learn' },
-    { name: 'Cloud & DevOps', level: 87, category: 'AWS, Docker, CI/CD' },
-    { name: 'Database Management', level: 92, category: 'PostgreSQL, MongoDB' }
+    { name: 'Languages', level: 90, category: 'C++, JS, TS, Python, Java' },
+    { name: 'Frontend', level: 95, category: 'React, Next.js, Vue, Tailwind' },
+    { name: 'Backend', level: 85, category: 'Node, Express, FastAPI' },
+    { name: 'Databases', level: 80, category: 'Postgres, MySQL, Mongo' },
+    { name: 'Cloud/DevOps', level: 75, category: 'AWS, Docker, CI/CD' },
+    { name: 'ML', level: 80, category: 'scikit-learn, TensorFlow' }
   ];
 
   const experience = [
     {
-      company: 'Google Developer Student Club',
-      position: 'Web Developer Lead',
-      period: 'Aug 2024 – Present',
-      description: 'Led development of web applications for student events using modern tech stack. Improved user engagement by 40% through optimized UI components and mentored 15+ junior developers.',
-      achievements: ['40% engagement boost', 'Team leadership', 'React/Node expertise']
+      company: 'Microsoft Students Club (Open Source)',
+      position: 'Lead',
+      period: 'Present',
+      description: 'Leading open-source initiatives, mentoring students in full-stack development, and organizing technical workshops.',
+      achievements: ['Community Growth', 'OSS Mentorship', 'Workshop Org']
     },
     {
-      company: 'Career Guidance Cell',
-      position: 'Technical Member',
-      period: 'Jan 2024 – Present',
-      description: 'Developed web-based career tracking tools and organized professional development sessions with industry experts.',
-      achievements: ['Tool development', 'Event coordination', 'Student mentoring']
+      company: 'Google Developer Student Club (GDSC)',
+      position: 'Web Developer',
+      period: 'Past',
+      description: 'Developed and maintained web applications using React.js and Node.js. Built responsive UI components improving engagement by 40%.',
+      achievements: ['40% Engagement', 'React/Node.js', 'Mentorship']
+    },
+    {
+      company: 'Career Guidance Cell, IIIT Dharwad',
+      position: 'Member',
+      period: 'Past',
+      description: 'Organized career workshops and developed web-based tools for tracking student career progress.',
+      achievements: ['Career Tools', 'Workshop Org', 'Management']
     }
   ];
 
@@ -413,10 +436,10 @@ const ProfessionalPortfolio = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitMessage({ type: '', text: '' });
-    
+
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
-    
+
     try {
       await emailjs.sendForm(
         'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
@@ -424,7 +447,7 @@ const ProfessionalPortfolio = () => {
         form,
         'YOUR_PUBLIC_KEY' // Replace with your EmailJS public key
       );
-      
+
       setSubmitMessage({ type: 'success', text: 'Message sent successfully!' });
       form.reset();
     } catch (error) {
@@ -450,7 +473,7 @@ const ProfessionalPortfolio = () => {
     <div className={`relative min-h-screen overflow-hidden ${theme.bg}`}>
       {/* Three.js container */}
       <div ref={containerRef} className="fixed inset-0 z-0" />
-      
+
       {/* Mobile Header */}
       <header className={`md:hidden fixed top-0 left-0 right-0 z-50 ${theme.card} backdrop-blur-md border-b ${theme.border}`}>
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -463,10 +486,10 @@ const ProfessionalPortfolio = () => {
           >
             {isDarkMode ? '☀️' : '🌙'}
           </motion.button>
-          
+
           <h1 className={`text-xl font-bold ${theme.text}`}>Harshith Daraboina</h1>
-          
-          <button 
+
+          <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`p-2 rounded-md ${theme.text}`}
             aria-label="Toggle menu"
@@ -493,11 +516,10 @@ const ProfessionalPortfolio = () => {
                     <button
                       key={item.id}
                       onClick={() => scrollToSection(item.id)}
-                      className={`flex items-center px-4 py-3 rounded-lg transition-all ${
-                        activeSection === item.id 
-                          ? `${theme.accent} ${theme.accentText}` 
-                          : `${theme.text} hover:${theme.card}`
-                      }`}
+                      className={`flex items-center px-4 py-3 rounded-lg transition-all ${activeSection === item.id
+                        ? `${theme.accent} ${theme.accentText}`
+                        : `${theme.text} hover:${theme.card}`
+                        }`}
                     >
                       <Icon className="mr-3" size={18} />
                       <span>{item.label}</span>
@@ -511,7 +533,7 @@ const ProfessionalPortfolio = () => {
       </AnimatePresence>
 
       {/* Enhanced Desktop Navigation */}
-      <motion.nav 
+      <motion.nav
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.8 }}
@@ -527,7 +549,7 @@ const ProfessionalPortfolio = () => {
           >
             <span className="text-white font-bold text-lg">HD</span>
           </motion.div>
-          
+
           {/* Navigation Items */}
           <div className="flex flex-col items-center space-y-8">
             {navItems.map((item, index) => {
@@ -541,11 +563,10 @@ const ProfessionalPortfolio = () => {
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ scale: 1.1, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`relative p-3 rounded-xl transition-all duration-300 group ${
-                    activeSection === item.id 
-                      ? `${isDarkMode ? 'bg-white text-black' : 'bg-black text-white'} shadow-lg` 
-                      : `${isDarkMode ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-200'}`
-                  }`}
+                  className={`relative p-3 rounded-xl transition-all duration-300 group ${activeSection === item.id
+                    ? `${isDarkMode ? 'bg-white text-black' : 'bg-black text-white'} shadow-lg`
+                    : `${isDarkMode ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-200'}`
+                    }`}
                 >
                   <Icon size={20} />
                   <motion.div
@@ -576,7 +597,7 @@ const ProfessionalPortfolio = () => {
           {/* Social Links */}
           <div className="flex flex-col space-y-4">
             {[
-              { icon: Github, href: 'https://github.com/HithxDevs' },
+              { icon: Github, href: 'https://github.com/Harshith-Daraboina' },
               { icon: Linkedin, href: 'https://linkedin.com/in/harshith-daraboina' },
               { icon: Mail, href: 'mailto:hithx.devs@gmail.com' }
             ].map((social, index) => {
@@ -599,7 +620,7 @@ const ProfessionalPortfolio = () => {
 
           {/* Resume Download */}
           <motion.a
-            href="https://drive.google.com/file/d/1v7NILE8qWdu5BGPdD_6h7TrDVyM2erWN/view" 
+            href="https://drive.google.com/file/d/10yYHzfhx9gmlWeZYmY6hl_55xIdqpTJ_/view?usp=drive_link"
             target="_blank"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -623,16 +644,20 @@ const ProfessionalPortfolio = () => {
                   <span className="text-4xl md:text-6xl">DARABOINA</span>
                 </h1>
               </div>
-              
-              <div className="flex items-center gap-8 mb-12">
-                <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 ${isDarkMode ? 'bg-white' : 'bg-black'} rounded-full`}></div>
-                  <div className={`w-3 h-3 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'} rounded-full`}></div>
-                  <div className={`w-3 h-3 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'} rounded-full`}></div>
-                  <div className={`w-3 h-3 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'} rounded-full`}></div>
-                  <div className={`w-3 h-3 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'} rounded-full`}></div>
-                </div>
-                <span className={`text-sm tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Know more about us →</span>
+
+              <div className="flex flex-wrap items-center gap-6 mb-12">
+                <button
+                  onClick={() => scrollToSection('projects')}
+                  className={`px-8 py-3 rounded-full font-medium transition-all transform hover:scale-105 shadow-lg hover:shadow-xl ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`}
+                >
+                  View Projects
+                </button>
+                <button
+                  onClick={() => scrollToSection('contact')}
+                  className={`px-8 py-3 rounded-full font-medium border transition-all transform hover:scale-105 hover:bg-opacity-10 ${isDarkMode ? 'border-white text-white hover:bg-white' : 'border-black text-black hover:bg-black'}`}
+                >
+                  Contact Me
+                </button>
               </div>
 
               {/* Typing Effect Display */}
@@ -647,10 +672,10 @@ const ProfessionalPortfolio = () => {
         </section>
 
         {/* About Section */}
-        <section className={`py-20 px-4 sm:px-8 ${theme.bg}`}>
+        <section id="about" className={`py-20 px-4 sm:px-8 ${theme.bg}`}>
           <div className="max-w-7xl mx-auto">
             {/* Main Content - Split Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center min-h-[80vh]">
+            <div className="grid grid-cols-1 lg:grid-cols-[30%_70%] gap-16 items-center min-h-[80vh]">
               {/* Image Side */}
               <motion.div
                 initial={{ opacity: 0, x: -60 }}
@@ -661,13 +686,13 @@ const ProfessionalPortfolio = () => {
               >
                 {/* Glowing background effect */}
                 <div className="absolute -inset-6 bg-gradient-to-r from-gray-400/10 to-gray-600/10 rounded-3xl blur-3xl"></div>
-                
+
                 {/* Image container */}
                 <div className="relative">
                   <div className="overflow-hidden rounded-2xl shadow-2xl border border-white/10">
-                    <img 
-                      src='/assets/hero.png'  
-                      alt="Harshith Daraboina" 
+                    <img
+                      src='/images/hero.png'
+                      alt="Harshith Daraboina"
                       className="w-full h-auto object-cover transform hover:scale-105 transition-transform duration-700"
                     />
                   </div>
@@ -683,55 +708,28 @@ const ProfessionalPortfolio = () => {
                 className="space-y-8"
               >
                 {/* Main Heading with Outline Effect */}
-                <div className="space-y-4">
-                  <h2 className="text-lg font-medium text-gray-400 mb-2">
-                    We craft digital experiences and see the world through a
-                  </h2>
-                  <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
-                    <span className={`${theme.text} block`}>lens of innovation</span>
-                    <span 
-                      className="block text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-gray-600"
-                      style={{
-                        WebkitTextStroke: isDarkMode ? '2px rgba(255,255,255,0.3)' : '2px rgba(0,0,0,0.3)',
-                        textShadow: '0 0 30px rgba(100, 100, 100, 0.3)'
-                      }}
-                    >
-                      and excellence
-                    </span>
-                  </h1>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-6">
-                  <p className={`text-lg ${theme.textSecondary} leading-relaxed max-w-xl`}>
-                    As a passionate Computer Science student at IIIT Dharwad, I specialize in building robust full-stack applications and intelligent machine learning solutions.
-                  </p>
-                  
-                  <p className={`text-lg ${theme.textSecondary} leading-relaxed max-w-xl`}>
-                    My approach combines analytical problem-solving with creative design thinking, resulting in solutions that are not just functional but also delightful to use.
+                <div>
+                  <h3 className={`text-3xl font-bold mb-4 ${theme.text}`}>About Me</h3>
+                  <p className={`${theme.textSecondary} text-lg leading-relaxed`}>
+                    I am a passionate Full Stack Developer and AI Enthusiast with a knack for building scalable web applications and intelligent systems. With expertise in the MERN stack, Next.js, and Python, I transform complex problems into elegant, user-centric solutions. I am constantly exploring new technologies to push the boundaries of what's possible on the web.
                   </p>
                 </div>
 
-                {/* CTA Button */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.8 }}
-                  className="pt-4"
-                >
-                  <button className="group relative inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-gray-700 to-black text-white font-semibold rounded-xl hover:shadow-xl hover:shadow-gray-500/25 transition-all duration-300 transform hover:scale-105">
-                    <span>Know more about me</span>
-                    <svg 
-                      className="w-5 h-5 group-hover:translate-x-1 transition-transform" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </button>
-                </motion.div>
+                {/* GitHub Stats */}
+                <div className="space-y-6 flex flex-col items-center w-full">
+
+                  <div className={`w-full p-6 rounded-2xl bg-[#0d1117] border border-[#30363d] transition-all duration-300 hover:shadow-lg flex justify-center`}>
+                    <GitHubCalendar
+                      username="Harshith-Daraboina"
+                      blockSize={13}
+                      blockMargin={2}
+                      fontSize={14}
+                      colorScheme="dark"
+                    />
+                  </div>
+                </div>
+
+
 
                 {/* Skills Preview */}
                 <motion.div
@@ -742,7 +740,7 @@ const ProfessionalPortfolio = () => {
                   className="pt-8"
                 >
                   <div className="flex flex-wrap gap-3">
-                    {['React', 'Python', 'AI/ML', 'Node.js', 'Cloud'].map((skill, index) => (
+                    {['React', 'Next.js', 'Python', 'FastAPI', 'AI/ML'].map((skill, index) => (
                       <motion.span
                         key={skill}
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -774,34 +772,56 @@ const ProfessionalPortfolio = () => {
               <div className="w-20 h-1 bg-gradient-to-r from-gray-700 to-black mx-auto"></div>
             </motion.div>
 
-            <div className="space-y-8">
+            <div className="relative space-y-8 md:space-y-12">
+              {/* Vertical Line */}
+              <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gray-700 transform md:-translate-x-1/2"></div>
+
               {experience.map((exp, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className={`${theme.card} p-6 sm:p-8 rounded-xl border ${theme.border} hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300`}
+                  transition={{ delay: index * 0.2 }}
+                  className={`relative flex items-center md:justify-between ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
                 >
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 sm:mb-6">
-                    <div>
-                      <h3 className={`text-xl font-bold ${theme.text} mb-1 sm:mb-2`}>{exp.position}</h3>
-                      <h4 className="text-lg text-gray-400 font-medium">{exp.company}</h4>
-                    </div>
-                    <div className={`${theme.textSecondary} font-medium mt-2 md:mt-0`}>{exp.period}</div>
+                  {/* Spacer for desktop alignment */}
+                  <div className="hidden md:block w-5/12"></div>
+
+                  {/* Dot on Line */}
+                  <div className={`absolute left-8 md:left-1/2 w-8 h-8 rounded-full transform -translate-x-1/2 flex items-center justify-center z-10 border-4 ${isDarkMode ? 'bg-black border-gray-700' : 'bg-white border-gray-300'}`}>
+                    <div className={`w-3 h-3 rounded-full ${isDarkMode ? 'bg-white' : 'bg-black'}`}></div>
                   </div>
-                  <p className={`${theme.textSecondary} leading-relaxed mb-4 sm:mb-6`}>{exp.description}</p>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {exp.achievements.map((achievement, idx) => (
-                      <span 
-                        key={idx} 
-                        className="px-3 py-1 bg-gradient-to-r from-gray-700/20 to-black/20 text-gray-400 rounded-full text-xs sm:text-sm font-medium border border-gray-700/30"
-                      >
-                        {achievement}
-                      </span>
-                    ))}
+
+                  {/* Content Card */}
+                  <div className="ml-16 md:ml-0 w-full md:w-5/12">
+                    <div className={`${theme.card} p-6 rounded-xl border ${theme.border} hover:shadow-xl transition-all duration-300 relative group`}>
+                      {/* Arrow/Triangle */}
+                      <div className={`absolute top-6 w-4 h-4 transform rotate-45 ${theme.card} border-b ${theme.border} ${index % 2 === 0 ? '-right-2 border-r bg-inherit' : '-left-2 border-l bg-inherit'} hidden md:block z-0`}></div>
+
+                      <div className="flex flex-col mb-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className={`text-xl font-bold ${theme.text}`}>{exp.position}</h3>
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${theme.accent}`}>
+                            {exp.period}
+                          </span>
+                        </div>
+                        <h4 className="text-lg text-gray-400 font-medium">{exp.company}</h4>
+                      </div>
+
+                      <p className={`${theme.textSecondary} text-sm leading-relaxed mb-4`}>{exp.description}</p>
+
+                      <div className="flex flex-wrap gap-2">
+                        {exp.achievements.map((achievement, idx) => (
+                          <span
+                            key={idx}
+                            className={`px-3 py-1 rounded-full text-xs font-medium border ${isDarkMode ? 'border-gray-700 text-gray-400' : 'border-gray-300 text-gray-600'}`}
+                          >
+                            {achievement}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -810,341 +830,8 @@ const ProfessionalPortfolio = () => {
         </section>
 
         {/* Projects Section */}
-<section className="relative min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-white overflow-hidden">
-  {/* Sophisticated Grid Background */}
-  <div className="absolute inset-0">
-    {/* Primary grid */}
-    <div className="absolute inset-0" style={{
-      backgroundImage: `linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), 
-                       linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)`,
-      backgroundSize: '50px 50px'
-    }}></div>
-    
-    {/* Accent grid */}
-    <div className="absolute inset-0" style={{
-      backgroundImage: `linear-gradient(rgba(0,0,0,0.08) 1px, transparent 1px), 
-                       linear-gradient(90deg, rgba(0,0,0,0.08) 1px, transparent 1px)`,
-      backgroundSize: '200px 200px'
-    }}></div>
-    
-    {/* Floating geometric elements */}
-    <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-gray-200/30 to-gray-300/20 rounded-full blur-3xl"></div>
-    <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-tl from-slate-200/40 to-gray-200/30 rounded-full blur-2xl"></div>
-    <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-gradient-to-r from-gray-100/50 to-slate-200/30 rounded-full blur-xl"></div>
-  </div>
-
-  <div className="relative z-10 max-w-7xl mx-auto px-6 py-20">
-    {/* Header Section */}
-    <motion.div
-      className="text-center mb-24"
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 1 }}
-    >
-      <div className="inline-block mb-8">
-        <motion.div
-          className="text-xs tracking-[0.3em] text-gray-600 uppercase mb-4"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.8 }}
-        >
-          Software Engineering Excellence
-        </motion.div>
-        <motion.h1
-          className="text-5xl md:text-7xl lg:text-8xl font-light text-gray-900 mb-6 tracking-tight"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 1 }}
-        >
-          DIGITAL
-          <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-700 to-gray-900 font-extralight italic">
-            ARCHITECTURE
-          </span>
-        </motion.h1>
-        <motion.div
-          className="w-32 h-px bg-gradient-to-r from-transparent via-gray-400 to-transparent mx-auto"
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          transition={{ delay: 1, duration: 1.5 }}
-        ></motion.div>
-      </div>
-    </motion.div>
-
-    {/* Innovation Metrics */}
-    <motion.div
-      className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-32"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ delay: 0.8, duration: 1 }}
-    >
-      {[
-        { value: "500K+", metric: "Lines of Code", description: "Production-ready software" },
-        { value: "99.9%", metric: "Uptime", description: "Mission-critical systems" },
-        { value: "50ms", metric: "Response Time", description: "Optimized performance" },
-        { value: "Zero", metric: "Security Breaches", description: "Bulletproof architecture" }
-      ].map((item, index) => (
-        <motion.div
-          key={index}
-          className="text-center group cursor-pointer"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 1 + index * 0.2, duration: 0.8 }}
-          whileHover={{ y: -10 }}
-        >
-          <div className="relative">
-            <motion.div
-              className="text-4xl md:text-5xl font-extralight text-gray-900 mb-2"
-              whileHover={{ scale: 1.1 }}
-            >
-              {item.value}
-            </motion.div>
-            <div className="text-sm text-gray-700 font-medium mb-2">{item.metric}</div>
-            <div className="text-xs text-gray-500">{item.description}</div>
-            <motion.div
-              className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-12 h-px bg-gray-800 opacity-0 group-hover:opacity-100"
-              transition={{ duration: 0.3 }}
-            ></motion.div>
-          </div>
-        </motion.div>
-      ))}
-    </motion.div>
-
-    {/* Project Showcase */}
-    <motion.div
-      className="mb-32"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 1 }}
-    >
-      <div className="text-center mb-16">
-        <h2 className="text-3xl md:text-4xl font-light text-gray-900 mb-4">Featured Solutions</h2>
-        <div className="w-16 h-px bg-gray-800 mx-auto"></div>
-      </div>
-
-      <div className="space-y-12">
-        {[
-          {
-            id: "01",
-            title: "Quantum Trading Engine",
-            category: "FinTech Infrastructure",
-            description: "High-frequency trading system processing 1M+ transactions per second with microsecond latency optimization.",
-            technologies: ["Rust", "WebAssembly", "gRPC", "Redis Cluster"],
-            metrics: { performance: "1M TPS", latency: "<50μs", accuracy: "99.99%" },
-            codePreview: `// Ultra-low latency order matching
-use tokio::time::Instant;
-async fn match_order(order: Order) -> Result<Trade> {
-    let start = Instant::now();
-    let result = engine.match_atomic(order).await?;
-    metrics.record_latency(start.elapsed());
-    Ok(result)
-}`
-          },
-          {
-            id: "02",
-            title: "Neural Vision Pipeline",
-            category: "AI/ML Platform",
-            description: "Real-time computer vision system with edge computing capabilities for autonomous vehicle navigation.",
-            technologies: ["TensorFlow", "CUDA", "OpenCV", "Kubernetes"],
-            metrics: { accuracy: "98.7%", processing: "60 FPS", efficiency: "90% GPU" },
-            codePreview: `# Multi-scale object detection
-class NeuralVision:
-    def __init__(self, model_path):
-        self.model = tf.saved_model.load(model_path)
-        self.preprocessor = VisionPreprocessor()
-    
-    @tf.function
-    def detect_objects(self, frame):
-        processed = self.preprocessor.normalize(frame)
-        return self.model(processed)`
-          },
-          {
-            id: "03",
-            title: "Distributed Ledger Core",
-            category: "Blockchain Technology",
-            description: "Enterprise-grade blockchain infrastructure with custom consensus algorithm and smart contract execution.",
-            technologies: ["Go", "IPFS", "PostgreSQL", "Docker Swarm"],
-            metrics: { throughput: "10K TPS", nodes: "1000+", consensus: "<2s" },
-            codePreview: `// Consensus algorithm implementation
-type ConsensusEngine struct {
-    validators []Validator
-    threshold  float64
-}
-
-func (c *ConsensusEngine) ProposeBlock(block *Block) error {
-    votes := c.collectVotes(block)
-    if votes.approval >= c.threshold {
-        return c.commitBlock(block)
-    }
-    return ErrConsensusNotReached
-}`
-          }
-        ].map((project, index) => (
-          <motion.div
-            key={project.id}
-            className="group relative"
-            initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.3, duration: 1 }}
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              {/* Project Info */}
-              <div className={`lg:col-span-5 ${index % 2 === 1 ? 'lg:order-2' : ''}`}>
-                <div className="space-y-6">
-                  <div>
-                    <div className="text-6xl font-extralight text-gray-300 mb-2">{project.id}</div>
-                    <div className="text-xs text-gray-600 uppercase tracking-wider mb-3">{project.category}</div>
-                    <h3 className="text-2xl md:text-3xl font-light text-gray-900 mb-4">{project.title}</h3>
-                    <p className="text-gray-600 leading-relaxed mb-6">{project.description}</p>
-                  </div>
-
-                  {/* Metrics */}
-                  <div className="grid grid-cols-3 gap-4 mb-6">
-                    {Object.entries(project.metrics).map(([key, value]) => (
-                      <div key={key} className="text-center">
-                        <div className="text-lg font-light text-gray-900">{value}</div>
-                        <div className="text-xs text-gray-600 uppercase">{key}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Technologies */}
-                  <div className="flex flex-wrap gap-3">
-                    {project.technologies.map(tech => (
-                      <span key={tech} className="px-3 py-1 border border-gray-400 text-gray-700 text-xs font-medium rounded-full hover:border-gray-600 hover:bg-gray-50 transition-colors">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Code Preview */}
-              <div className={`lg:col-span-7 ${index % 2 === 1 ? 'lg:order-1' : ''}`}>
-                <motion.div
-                  className="relative bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 group-hover:border-gray-300 hover:shadow-xl transition-all duration-500"
-                  whileHover={{ scale: 1.02 }}
-                >
-                  {/* Terminal Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex space-x-2">
-                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    </div>
-                    <div className="text-xs text-gray-600 font-mono">production.rs</div>
-                  </div>
-
-                  {/* Code */}
-                  <div className="font-mono text-sm">
-                    <pre className="text-gray-800 leading-relaxed overflow-x-auto">
-                      <code>{project.codePreview}</code>
-                    </pre>
-                  </div>
-
-                  {/* Glow Effect */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                </motion.div>
-              </div>
-            </div>
-
-            {/* Project Divider */}
-            {index < 2 && (
-              <motion.div
-                className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mt-24"
-                initial={{ scaleX: 0 }}
-                whileInView={{ scaleX: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.5, duration: 1 }}
-              ></motion.div>
-            )}
-          </motion.div>
-        ))}
-      </div>
-    </motion.div>
-
-    {/* Technologies Stack */}
-    <motion.div
-      className="mb-32"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 1 }}
-    >
-      <div className="text-center mb-16">
-        <h2 className="text-3xl md:text-4xl font-light text-gray-900 mb-4">Technology Expertise</h2>
-        <div className="w-16 h-px bg-gray-800 mx-auto"></div>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-        {[
-          "TypeScript", "Rust", "Go", "Python", "React", "Next.js",
-          "Node.js", "PostgreSQL", "Redis", "Kubernetes", "AWS", "Docker",
-          "TensorFlow", "WebAssembly", "GraphQL", "gRPC", "Blockchain", "WebGL"
-        ].map((tech, index) => (
-          <motion.div
-            key={tech}
-            className="group text-center cursor-pointer"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.05, duration: 0.6 }}
-            whileHover={{ y: -5 }}
-          >
-            <div className="w-16 h-16 mx-auto mb-3 bg-white/70 border border-gray-200 rounded-2xl flex items-center justify-center group-hover:border-gray-400 hover:shadow-lg transition-all">
-              <div className="text-2xl text-gray-600 group-hover:text-gray-900 transition-colors">
-                {tech.charAt(0)}
-              </div>
-            </div>
-            <div className="text-xs text-gray-600 group-hover:text-gray-800 transition-colors font-medium">
-              {tech}
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </motion.div>
-
-    {/* CTA Section */}
-    <motion.div
-      className="text-center"
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 1 }}
-    >
-      <motion.button
-        className="group relative inline-flex items-center justify-center px-12 py-4 text-sm font-medium text-black bg-white rounded-full hover:bg-gray-100 transition-all duration-300 overflow-hidden"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <span className="relative z-10 tracking-wider uppercase">Explore Architecture</span>
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-gray-100 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        />
-      </motion.button>
-      
-      <p className="text-gray-600 text-sm mt-8 max-w-md mx-auto">
-        Building tomorrow's software infrastructure today. Every line of code crafted with precision and purpose.
-      </p>
-    </motion.div>
-  </div>
-
-  <style jsx>{`
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      33% { transform: translate(-20px, -20px) rotate(1deg); }
-      66% { transform: translate(20px, -10px) rotate(-1deg); }
-    }
-  `}</style>
-</section>
-
-        {/* Skills Section */}
-        {/* <section className="py-16 sm:py-20 px-4 sm:px-8">
+        {/* Projects Section */}
+        <section id="projects" className={`py-16 sm:py-20 px-4 sm:px-8 ${theme.bg}`}>
           <div className="max-w-6xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 50 }}
@@ -1152,43 +839,155 @@ func (c *ConsensusEngine) ProposeBlock(block *Block) error {
               viewport={{ once: true }}
               className="text-center mb-12 sm:mb-16"
             >
-              <h2 className={`text-3xl sm:text-4xl font-bold ${theme.text} mb-4`}>Skills</h2>
+              <h2 className={`text-3xl sm:text-4xl font-bold ${theme.text} mb-4`}>Featured Projects</h2>
               <div className="w-20 h-1 bg-gradient-to-r from-gray-700 to-black mx-auto"></div>
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {skills.map((skill, index) => (
-                <motion.div
-                  key={skill.name}
-                  initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="space-y-4"
+              {projects.map((project, index) => (
+                <SpotlightCard
+                  key={project.id}
+                  className={`${theme.card} rounded-xl border ${theme.border} hover:shadow-xl transition-all duration-300 flex flex-col h-full`}
+                  spotlightColor="rgba(0, 229, 255, 0.2)"
                 >
-                  <div className="flex justify-between items-center">
-                    <h3 className={`font-medium ${theme.text}`}>{skill.name}</h3>
-                    <span className={`text-sm ${theme.textSecondary}`}>{skill.level}%</span>
-                  </div>
-                  <div className={`h-2 rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
-                    <motion.div
-                      initial={{ width: 0 }}
-                      whileInView={{ width: `${skill.level}%` }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 1, delay: index * 0.1 }}
-                      className="h-full rounded-full bg-gradient-to-r from-gray-700 to-black"
-                    />
-                  </div>
-                  <p className={`text-sm ${theme.textSecondary}`}>{skill.category}</p>
-                </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex flex-col h-full"
+                  >
+                    <div className="p-6 flex-grow flex flex-col">
+                      <div className="flex justify-between items-start mb-4">
+                        <span className={`text-xs font-bold px-3 py-1 rounded-full ${theme.accent}`}>
+                          {project.category}
+                        </span>
+                        <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{project.year}</span>
+                      </div>
+                      <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-black'} mb-3`}>{project.title}</h3>
+                      <p className={`text-base ${isDarkMode ? 'text-gray-200' : 'text-gray-800'} mb-6 flex-grow leading-relaxed font-medium`}>{project.description}</p>
+
+                      <div className="flex flex-wrap gap-2 mt-auto">
+                        {project.technologies.map(tech => (
+                          <span key={tech} className={`text-xs px-2 py-1 rounded border ${isDarkMode ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-700'} font-medium`}>
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                </SpotlightCard>
               ))}
             </div>
           </div>
-        </section> */}
+        </section>
+
+        {/* Technical Proficiency / 3-Column Layout */}
+        <section className="py-16 sm:py-20 px-4 sm:px-8 relative z-20">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className={`text-4xl md:text-5xl font-bold ${theme.text} mb-6`}>Technical Proficiency</h2>
+              <div className="w-24 h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent mx-auto opacity-50"></div>
+              <p className={`mt-6 text-xl ${theme.textSecondary} max-w-2xl mx-auto leading-relaxed`}>
+                Core foundations, modern execution.
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch h-auto">
+
+              {/* Column 1: Education Stack */}
+              <div className="relative group h-full">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-slate-700 to-cyan-900/50 rounded-2xl blur opacity-0 group-hover:opacity-50 transition duration-500"></div>
+                <div className={`relative h-full ${isDarkMode ? 'bg-[#0B1120] border-white/5' : 'bg-white border-gray-200 shadow-lg'} rounded-2xl border group-hover:border-cyan-500/20 p-6 overflow-y-auto custom-scrollbar h-[500px] transition-colors duration-500`}>
+                  <h4 className="text-sm font-bold text-cyan-400 uppercase tracking-widest mb-6 border-b border-gray-200/10 pb-2">Academic Timeline</h4>
+                  <div className={`space-y-8 relative pl-6 border-l-2 ${isDarkMode ? 'border-slate-700/50' : 'border-gray-200'}`}>
+                    {[
+                      { school: "IIIT Dharwad", degree: "B.Tech CSE", score: "GPA: 8.02", detail: "University", year: "2022-2026" },
+                      { school: "Narayana College", degree: "Intermediate", score: "95%", detail: "College", year: "2020-2022" },
+                      { school: "KKR Gowtham School", degree: "CBSE", score: "85.4%", detail: "School", year: "2019-2020" }
+                    ].map((edu, idx) => (
+                      <div key={idx} className="relative group/item">
+                        {/* Timeline Dot */}
+                        <div className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 ${isDarkMode ? 'border-slate-900' : 'border-white ring-2 ring-gray-100'} ${idx === 0 ? 'bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]' : 'bg-gray-400 group-hover/item:bg-cyan-500'} transition-colors duration-300`}></div>
+
+                        {/* Content */}
+                        <div className={`${isDarkMode ? 'bg-slate-800/50 border-white/5' : 'bg-gray-50 border-gray-200'} p-4 rounded-lg border hover:border-cyan-500/30 transition-colors`}>
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="text-[10px] font-bold text-cyan-500 uppercase tracking-wider bg-cyan-500/10 px-2 py-0.5 rounded">
+                              {edu.detail}
+                            </span>
+                            <span className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-gray-500'} font-mono`}>{edu.year}</span>
+                          </div>
+                          <h4 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} leading-tight mb-1`}>{edu.school}</h4>
+                          <div className="flex justify-between items-center text-sm mt-2">
+                            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{edu.degree}</p>
+                            <span className={`text-cyan-500 font-bold ${isDarkMode ? 'bg-slate-800 border-white/10' : 'bg-white border-gray-200'} px-2 py-1 rounded text-xs border`}>{edu.score}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 2: Achievements Stack */}
+              <div className="h-full w-full">
+                <div className="flex items-center gap-3 mb-6 justify-center md:justify-end">
+                  <h3 className="text-xl font-bold text-white">Achievements</h3>
+                  <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Achievements</h3>
+                  <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-slate-800' : 'bg-gray-100'} text-purple-400`}><ExternalLink size={20} /></div>
+                </div>
+
+                <div className="relative group h-full">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-slate-700 to-indigo-900/50 rounded-2xl blur opacity-0 group-hover:opacity-50 transition duration-500"></div>
+                  <div className={`relative h-full ${isDarkMode ? 'bg-[#0B1120] border-white/5' : 'bg-white border-gray-200 shadow-lg'} rounded-2xl border group-hover:border-indigo-500/20 p-6 overflow-hidden custom-scrollbar h-[500px] transition-colors duration-500 flex flex-col`}>
+                    <h4 className="text-sm font-bold text-indigo-400 uppercase tracking-widest mb-6 border-b border-gray-200/10 pb-2">Key Highlights</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+                      {[
+                        { title: "Hack to Impact", desc: "Top 6 Finalist (90+ Teams)", highlight: "IIIT Delhi", icon: "🏆" },
+                        { title: "CodeChef", desc: "Max Rating 1253 (2★)", highlight: "Competitive", icon: "⭐" },
+                        { title: "LeetCode", desc: "400+ DSA Problems Solved", highlight: "Problem Solving", icon: "💻" },
+                        { title: "Academic", desc: "Distinction with 8.02 GPA", highlight: "Excellence", icon: "🎓" }
+                      ].map((ach, idx) => (
+                        <div key={idx} className={`${isDarkMode ? 'bg-slate-900/40 border-white/5 hover:bg-slate-900/80' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'} p-4 rounded-xl border hover:border-indigo-500/20 transition-all group/card flex flex-col justify-between h-full`}>
+                          <div>
+                            <div className="flex justify-between items-start mb-3">
+                              <span className={`${isDarkMode ? 'opacity-80' : 'opacity-100 text-gray-700'} text-2xl group-hover/card:opacity-100 transition-opacity`}>{ach.icon}</span>
+                              <span className="text-[9px] font-bold text-indigo-500 uppercase tracking-wider bg-indigo-500/10 px-1.5 py-0.5 rounded">{ach.highlight}</span>
+                            </div>
+                            <h4 className={`text-sm font-bold ${isDarkMode ? 'text-gray-200 group-hover/card:text-white' : 'text-gray-900 group-hover/card:text-black'} leading-tight mb-2 transition-colors`}>{ach.title}</h4>
+                            <p className={`${isDarkMode ? 'text-gray-500 group-hover/card:text-gray-400' : 'text-gray-600 group-hover/card:text-gray-500'} text-xs leading-relaxed`}>{ach.desc}</p>
+                          </div>
+
+                          <div className="mt-auto pt-3">
+                            {idx === 0 && <div className={`w-full h-1 ${isDarkMode ? 'bg-indigo-950/30' : 'bg-indigo-100'} rounded-full overflow-hidden`}><div className="h-full w-[95%] bg-indigo-500/50 group-hover/card:bg-indigo-500 transition-colors"></div></div>}
+                            {idx === 1 && <div className={`w-full h-1 ${isDarkMode ? 'bg-indigo-950/30' : 'bg-indigo-100'} rounded-full overflow-hidden`}><div className="h-full w-[70%] bg-indigo-500/50 group-hover/card:bg-indigo-500 transition-colors"></div></div>}
+                            {idx === 2 && <div className={`w-full h-1 ${isDarkMode ? 'bg-indigo-950/30' : 'bg-indigo-100'} rounded-full overflow-hidden`}><div className="h-full w-[85%] bg-indigo-500/50 group-hover/card:bg-indigo-500 transition-colors"></div></div>}
+                            {idx === 3 && <div className={`w-full h-1 ${isDarkMode ? 'bg-indigo-950/30' : 'bg-indigo-100'} rounded-full overflow-hidden`}><div className="h-full w-[80%] bg-indigo-500/50 group-hover/card:bg-indigo-500 transition-colors"></div></div>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+
+
 
         {/* Contact Section */}
-        <section id="contact" className="py-16 sm:py-20 px-4 sm:px-8">
-          <div className="max-w-6xl mx-auto">
+        <section id="contact" className={`py-16 sm:py-20 px-4 sm:px-8 relative`}>
+          {isDarkMode && <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a] to-black opacity-80 pointer-events-none"></div>}
+          <div className="max-w-6xl mx-auto relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -1211,7 +1010,7 @@ func (c *ConsensusEngine) ProposeBlock(block *Block) error {
               >
                 <div className={`p-6 sm:p-8 rounded-xl ${theme.card} border ${theme.border}`}>
                   <h3 className={`text-2xl font-bold ${theme.text} mb-6`}>Contact Information</h3>
-                  
+
                   <div className="space-y-6">
                     <div className="flex items-start gap-4">
                       <div className={`p-3 rounded-full ${theme.accent}`}>
@@ -1219,12 +1018,12 @@ func (c *ConsensusEngine) ProposeBlock(block *Block) error {
                       </div>
                       <div>
                         <h4 className={`font-medium ${theme.text}`}>Email</h4>
-                        <a href="mailto:hithx.devs@gmail.com" className={`${theme.textSecondary} hover:text-gray-400 transition-colors`}>
-                          hithx.devs@gmail.com
+                        <a href="mailto:daraboinaharshith2005@gmail.com" className={`${theme.textSecondary} hover:text-gray-400 transition-colors`}>
+                          daraboinaharshith2005@gmail.com
                         </a>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start gap-4">
                       <div className={`p-3 rounded-full ${theme.accent}`}>
                         <Phone size={20} />
@@ -1236,7 +1035,7 @@ func (c *ConsensusEngine) ProposeBlock(block *Block) error {
                         </a>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start gap-4">
                       <div className={`p-3 rounded-full ${theme.accent}`}>
                         <MapPin size={20} />
@@ -1247,12 +1046,12 @@ func (c *ConsensusEngine) ProposeBlock(block *Block) error {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-8 pt-6 border-t border-gray-700">
                     <h4 className={`font-medium ${theme.text} mb-4`}>Connect with me</h4>
                     <div className="flex gap-4">
                       {[
-                        { icon: Github, href: 'https://github.com/HithxDevs' },
+                        { icon: Github, href: 'https://github.com/Harshith-Daraboina' },
                         { icon: Linkedin, href: 'https://linkedin.com/in/harshith-daraboina' },
                         { icon: Mail, href: 'mailto:hithx.devs@gmail.com' }
                       ].map((social, index) => {
@@ -1283,14 +1082,14 @@ func (c *ConsensusEngine) ProposeBlock(block *Block) error {
                 className={`p-6 sm:p-8 rounded-xl ${theme.card} border ${theme.border}`}
               >
                 <h3 className={`text-2xl font-bold ${theme.text} mb-6`}>Send Me a Message</h3>
-                
+
                 <form onSubmit={handleFormSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="name" className={`block ${theme.text} mb-2`}>Name</label>
-                      <input 
-                        type="text" 
-                        id="name" 
+                      <input
+                        type="text"
+                        id="name"
                         name="name"
                         required
                         className={`w-full px-4 py-3 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'} border ${theme.border} ${theme.text} focus:outline-none focus:ring-2 focus:ring-gray-500`}
@@ -1299,9 +1098,9 @@ func (c *ConsensusEngine) ProposeBlock(block *Block) error {
                     </div>
                     <div>
                       <label htmlFor="email" className={`block ${theme.text} mb-2`}>Email</label>
-                      <input 
-                        type="email" 
-                        id="email" 
+                      <input
+                        type="email"
+                        id="email"
                         name="email"
                         required
                         className={`w-full px-4 py-3 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'} border ${theme.border} ${theme.text} focus:outline-none focus:ring-2 focus:ring-gray-500`}
@@ -1309,23 +1108,23 @@ func (c *ConsensusEngine) ProposeBlock(block *Block) error {
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label htmlFor="subject" className={`block ${theme.text} mb-2`}>Subject</label>
-                    <input 
-                      type="text" 
-                      id="subject" 
+                    <input
+                      type="text"
+                      id="subject"
                       name="subject"
                       required
                       className={`w-full px-4 py-3 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'} border ${theme.border} ${theme.text} focus:outline-none focus:ring-2 focus:ring-gray-500`}
                       placeholder="Subject"
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor="message" className={`block ${theme.text} mb-2`}>Message</label>
-                    <textarea 
-                      id="message" 
+                    <textarea
+                      id="message"
                       name="message"
                       rows={5}
                       required
@@ -1333,19 +1132,19 @@ func (c *ConsensusEngine) ProposeBlock(block *Block) error {
                       placeholder="Your message"
                     ></textarea>
                   </div>
-                  
+
                   {submitMessage.text && (
                     <div className={`p-3 rounded-lg ${submitMessage.type === 'success' ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400'}`}>
                       {submitMessage.text}
                     </div>
                   )}
-                  
+
                   <motion.button
                     type="submit"
                     disabled={isSubmitting}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`w-full px-6 py-4 ${theme.accent} ${theme.accentText} rounded-lg font-medium hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50`}
+                    className={`w-full px-6 py-4 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50`}
                   >
                     {isSubmitting ? (
                       <>Sending...</>
@@ -1370,9 +1169,9 @@ func (c *ConsensusEngine) ProposeBlock(block *Block) error {
             </div>
             <div className="flex space-x-6">
               {[
-                { icon: Github, href: 'https://github.com/HithxDevs' },
+                { icon: Github, href: 'https://github.com/Harshith-Daraboina' },
                 { icon: Linkedin, href: 'https://linkedin.com/in/harshith-daraboina' },
-                { icon: Mail, href: 'mailto:hithx.devs@gmail.com' }
+                { icon: Mail, href: 'mailto:daraboinaharshith2005@gmail.com' }
               ].map((social, index) => {
                 const Icon = social.icon;
                 return (
