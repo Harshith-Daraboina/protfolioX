@@ -10,16 +10,10 @@ import dynamic from 'next/dynamic';
 // Removed unused LogoLoop import
 import { SiReact, SiNextdotjs, SiTypescript, SiTailwindcss, SiPython, SiFastapi, SiPostgresql, SiDocker, SiAmazon } from 'react-icons/si';
 
-const GitHubCalendar = dynamic(
-  async () => {
-    const mod = await import('react-github-calendar') as any;
-    return (mod.default || mod) as React.ComponentType<any>;
-  },
-  {
-    ssr: false,
-    loading: () => <div className="w-full h-32 animate-pulse bg-gray-800/50 rounded-lg"></div>
-  }
-);
+const GitHubCalendar: React.ComponentType<any> = dynamic(() => import('react-github-calendar').then((mod) => (mod as any).default || mod), {
+  ssr: false,
+  loading: () => <div className="w-full h-32 animate-pulse bg-gray-800/50 rounded-lg"></div>
+});
 
 const ProfessionalPortfolio = () => {
   const [mounted, setMounted] = useState(false);
@@ -719,6 +713,7 @@ const ProfessionalPortfolio = () => {
                 <div className="space-y-6 flex flex-col items-center w-full">
 
                   <div className={`w-full p-6 rounded-2xl bg-[#0d1117] border border-[#30363d] transition-all duration-300 hover:shadow-lg flex justify-center`}>
+                    {/* @ts-ignore */}
                     <GitHubCalendar
                       username="Harshith-Daraboina"
                       blockSize={13}
