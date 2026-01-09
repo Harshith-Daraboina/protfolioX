@@ -2,7 +2,7 @@
 
 import React from 'react';
 // @ts-ignore
-import Calendar from 'react-github-calendar';
+import { GitHubCalendar as Calendar } from 'react-github-calendar';
 
 const GitHubCalendar = (props: any) => {
     return <Calendar {...props} />;
