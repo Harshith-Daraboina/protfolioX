@@ -10,7 +10,7 @@ import dynamic from 'next/dynamic';
 // Removed unused LogoLoop import
 import { SiReact, SiNextdotjs, SiTypescript, SiTailwindcss, SiPython, SiFastapi, SiPostgresql, SiDocker, SiAmazon } from 'react-icons/si';
 
-const GitHubCalendar: React.ComponentType<any> = dynamic(() => import('react-github-calendar').then((mod) => (mod as any).default || mod), {
+const GitHubCalendar = dynamic(() => import('../components/GitHubCalendar'), {
   ssr: false,
   loading: () => <div className="w-full h-32 animate-pulse bg-gray-800/50 rounded-lg"></div>
 });
